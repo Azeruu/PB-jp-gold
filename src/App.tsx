@@ -1,7 +1,8 @@
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser, useAuth } from "@clerk/clerk-react";
 import { useState, useEffect, FormEvent } from "react";
 import axios from "axios";
-import { Plus, Calendar, Trash2, Wallet, Users, ArrowDownCircle, X, Pencil } from "lucide-react";
+import { Plus, Calendar, Trash2, Wallet, Users, ArrowDownCircle, Pencil, LogIn } from "lucide-react";
+import Logo from "/SHUTTLECOCK.png"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -57,7 +58,6 @@ function App() {
     setFetching(true);
     try {
       const res = await axios.get(`${API_URL}/sessions`);
-      // Sort sessions by date descending (newest first)
       const sortedSessions = res.data.sort((a: Session, b: Session) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
@@ -71,9 +71,9 @@ function App() {
 
   if (!isLoaded) {
     return (
-      <div className="container" style={{ textAlign: 'center', marginTop: '5rem' }}>
+      <div className="container mx-auto max-w-6xl px-4 mt-20 text-center">
         <div className="glass-card">
-          <p>Memuat aplikasi...</p>
+          <p className="animate-pulse">Memuat aplikasi...</p>
         </div>
       </div>
     );
@@ -81,25 +81,31 @@ function App() {
 
   if (fetching && sessions.length === 0) {
     return (
-      <div className="container" style={{ textAlign: 'center', marginTop: '5rem' }}>
+      <div className="container mx-auto max-w-6xl px-4 mt-20 text-center">
         <div className="glass-card">
-          <p>Memuat data laporan...</p>
+          <p className="animate-pulse">Memuat data laporan...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-        <div>
-          <h1 style={{ color: 'var(--primary)', marginBottom: 0 }}>Badminton Tracker</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Pelaporan Bulutangkis Mingguan</p>
+    <div className="container mx-auto max-w-full pb-8">
+      <header className="flex flex-col md:flex-row justify-between items-center mb-12 px-10 py-4 gap-6 bg-white/5 backdrop-blur-md w-full">
+        <div className="flex items-center justify-center gap-4">
+          <img src={Logo} alt="Logo" className="w-20 h-20 -m-8" />
+          <div className="flex flex-col items-center justify-center md:items-start md:justify-between">
+            <div className="flex justify-center items-center gap-2">
+              <h1 className="text-2xl font-bold text-[#cebc17aa]">PB JP GOLD</h1>
+              <h2 className="text-xl font-bold text-[#6366f1]">Badminton Tracker</h2>
+            </div>
+            <p className="text-[#94a3b8]">Pelaporan Bulutangkis Mingguan</p>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="flex items-center gap-4">
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="btn btn-primary">Login untuk Mengedit</button>
+              <button className="btn btn-primary"><LogIn /> Login</button>
             </SignInButton>
           </SignedOut>
           <SignedIn>
@@ -108,7 +114,12 @@ function App() {
         </div>
       </header>
 
-      <Dashboard sessions={sessions} onRefresh={fetchSessions} />
+      <div className="mx-auto max-w-6xl">
+        <SignedOut>
+          <p className="text-center text-[#94a3b8] mb-10 bg-yellow-300/10">Silahkan Login Untuk Mengedit</p>
+        </SignedOut>
+        <Dashboard sessions={sessions} onRefresh={fetchSessions} />
+      </div>
     </div>
   );
 }
@@ -121,12 +132,12 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
 
   const latestSession = sessions[0];
   const latestBalance = latestSession ? (
-    latestSession.initial_cash - 
-    latestSession.expenses.reduce((a, c) => a + c.amount, 0) + 
+    latestSession.initial_cash -
+    latestSession.expenses.reduce((a, c) => a + c.amount, 0) +
     latestSession.players.reduce((a, c) => a + (c.has_paid ? c.contribution_amount : 0), 0)
   ) : 0;
 
-  const averagePlayers = sessions.length > 0 
+  const averagePlayers = sessions.length > 0
     ? (sessions.reduce((acc, s) => acc + s.players.length, 0) / sessions.length).toFixed(1)
     : 0;
 
@@ -155,41 +166,41 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
   };
 
   return (
-    <div>
+    <div className="space-y-12">
       {!isAdding && (
-        <div className="grid" style={{ marginBottom: '3rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-          <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ background: 'rgba(99, 102, 241, 0.2)', padding: '0.75rem', borderRadius: '0.75rem', color: 'var(--primary)' }}>
-              <Wallet size={24} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="glass-card flex items-center gap-4 hover:scale-105 transition-transform duration-300">
+            <div className="bg-[#6366f1]/20 p-4 rounded-2xl text-[#6366f1]">
+              <Wallet size={28} />
             </div>
             <div>
-              <p className="stat-label">Saldo Terkini</p>
-              <p className="stat-value">Rp {latestBalance.toLocaleString()}</p>
+              <p className="text-sm text-[#94a3b8]">Saldo Terkini</p>
+              <p className="text-2xl font-bold">Rp {latestBalance.toLocaleString()}</p>
             </div>
           </div>
-          <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ background: 'rgba(16, 185, 129, 0.2)', padding: '0.75rem', borderRadius: '0.75rem', color: 'var(--accent)' }}>
-              <Users size={24} />
+          <div className="glass-card flex items-center gap-4 hover:scale-105 transition-transform duration-300">
+            <div className="bg-[#10b981]/20 p-4 rounded-2xl text-[#10b981]">
+              <Users size={28} />
             </div>
             <div>
-              <p className="stat-label">Rata-rata Kehadiran</p>
-              <p className="stat-value">{averagePlayers} Pemain/Sesi</p>
+              <p className="text-sm text-[#94a3b8]">Rata-rata Kehadiran</p>
+              <p className="text-2xl font-bold">{averagePlayers} Pemain/Sesi</p>
             </div>
           </div>
-          <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ background: 'rgba(239, 68, 68, 0.2)', padding: '0.75rem', borderRadius: '0.75rem', color: 'var(--danger)' }}>
-              <Calendar size={24} />
+          <div className="glass-card flex items-center gap-4 hover:scale-105 transition-transform duration-300">
+            <div className="bg-[#ef4444]/20 p-4 rounded-2xl text-[#ef4444]">
+              <Calendar size={28} />
             </div>
             <div>
-              <p className="stat-label">Total Sesi</p>
-              <p className="stat-value">{sessions.length} Sesi</p>
+              <p className="text-sm text-[#94a3b8]">Total Sesi</p>
+              <p className="text-2xl font-bold">{sessions.length} Sesi</p>
             </div>
           </div>
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>{isAdding ? (editingSession ? 'Edit Laporan' : 'Buat Laporan Baru') : 'Riwayat Sesi'}</h2>
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl font-bold">{isAdding ? (editingSession ? 'Edit Laporan' : 'Buat Laporan Baru') : 'Riwayat Sesi'}</h2>
         {!isAdding && user && (
           <button className="btn btn-primary" onClick={() => setIsAdding(true)}>
             <Plus size={20} /> Laporan Baru
@@ -204,7 +215,7 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
           onSaved={() => { handleCancelForm(); onRefresh(); }}
         />
       ) : (
-        <div className="grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sessions.map((session) => (
             <SessionCard
               key={session.id}
@@ -214,8 +225,8 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
             />
           ))}
           {sessions.length === 0 && (
-            <div className="glass-card" style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem' }}>
-              <p>Belum ada laporan. {user ? 'Buat laporan pertama Anda!' : 'Silakan login untuk membuat laporan.'}</p>
+            <div className="glass-card col-span-full text-center py-20">
+              <p className="text-lg text-[#94a3b8]">Belum ada laporan. {user ? 'Buat laporan pertama Anda!' : 'Silakan login untuk membuat laporan.'}</p>
             </div>
           )}
         </div>
@@ -232,7 +243,6 @@ function SessionCard({ session, onDelete, onEdit }: { session: Session, onDelete
   const kasAkhir = sisa + incomeTotal;
   const isOwner = user?.id === session.user_id;
 
-  // Format date: "Kamis, 12 Maret 2026"
   const formattedDate = new Date(session.date).toLocaleDateString('id-ID', {
     weekday: 'long',
     year: 'numeric',
@@ -241,24 +251,24 @@ function SessionCard({ session, onDelete, onEdit }: { session: Session, onDelete
   });
 
   return (
-    <div className="glass-card" style={{ padding: '1.5rem', position: 'relative' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-          <Calendar size={16} />
-          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{formattedDate}</span>
+    <div className="glass-card relative group">
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex items-center gap-2 text-[#6366f1]">
+          <Calendar size={18} />
+          <span className="text-sm font-bold">{formattedDate}</span>
         </div>
         {isOwner && (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="flex gap-1">
             <button
               onClick={onEdit}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}
+              className="p-2 text-[#94a3b8] hover:text-white transition-colors"
               title="Edit Sesi"
             >
               <Pencil size={18} />
             </button>
             <button
               onClick={onDelete}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}
+              className="p-2 text-[#94a3b8] hover:text-rose-500 transition-colors"
               title="Hapus Sesi"
             >
               <Trash2 size={18} />
@@ -268,30 +278,49 @@ function SessionCard({ session, onDelete, onEdit }: { session: Session, onDelete
       </div>
 
       {(session.user_name || session.user_email) && (
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+        <div className="text-[10px] text-[#94a3b8] mb-6 flex items-center gap-2">
+          <span className="bg-white/5 px-2 py-0.5 rounded border border-white/5">
             Oleh: {session.user_name}
           </span>
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div className="space-y-3">
         <StatRow label="Uang Kas Awal" value={`Rp ${session.initial_cash.toLocaleString()}`} />
-        <StatRow label="Total Pengeluaran" value={`Rp ${expensesTotal.toLocaleString()}`} color="var(--danger)" />
-        <StatRow label="Sisa Kas" value={`Rp ${sisa.toLocaleString()}`} />
-        <StatRow label="Total Iuran" value={`Rp ${incomeTotal.toLocaleString()}`} color="var(--accent)" />
-        <hr style={{ opacity: 0.1, margin: '0.5rem 0' }} />
-        <StatRow label="Saldo Akhir" value={`Rp ${kasAkhir.toLocaleString()}`} weight="700" size="1.25rem" />
-      </div>
 
-      <div style={{ marginTop: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>Pemain ({session.players.length})</p>
-          {session.shuttlecocks_remaining !== null && (
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Sisa Kok: {session.shuttlecocks_remaining}</span>
+        {/* Expenditure Section with Details */}
+        <div className="space-y-2">
+          <StatRow label="Total Pengeluaran" value={`Rp ${expensesTotal.toLocaleString()}`} color="text-rose-400" />
+          {session.expenses.length > 0 && (
+            <div className="pl-4 border-l border-rose-500/20 space-y-1">
+              {session.expenses.map((exp, idx) => (
+                <div key={idx} className="flex justify-between text-[11px] text-[#94a3b8]">
+                  <span>• {exp.name}</span>
+                  <span>Rp {exp.amount.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+
+        <StatRow label="Sisa Kas" value={`Rp ${sisa.toLocaleString()}`} />
+        <StatRow label="Total Iuran" value={`Rp ${incomeTotal.toLocaleString()}`} color="text-[#10b981]" />
+
+        <div className="h-px bg-white/10 my-2" />
+
+        <StatRow label="Saldo Akhir" value={`Rp ${kasAkhir.toLocaleString()}`} weight="font-bold" size="text-xl" />
+      </div>
+
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <p className="text-sm font-bold flex items-center gap-2">
+            <Users size={16} /> Pemain ({session.players.length})
+          </p>
+          {session.shuttlecocks_remaining !== null && (
+            <span className="text-[10px] text-[#94a3b8] font-medium italic">Sisa Kok: {session.shuttlecocks_remaining}</span>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
           {session.players.map((p) => (
             <span key={p.id} className={`badge ${p.has_paid ? 'badge-paid' : 'badge-unpaid'}`} title={p.has_paid ? 'Sudah Bayar' : 'Belum Bayar'}>
               {p.name}
@@ -313,9 +342,9 @@ interface StatRowProps {
 
 function StatRow({ label, value, color, weight, size }: StatRowProps) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span className="stat-label">{label}</span>
-      <span style={{ color: color || 'white', fontWeight: weight || 600, fontSize: size || '1rem' }}>{value}</span>
+    <div className="flex justify-between items-center">
+      <span className="text-xs text-[#94a3b8]">{label}</span>
+      <span className={`${color || 'text-white'} ${weight || 'font-semibold'} ${size || 'text-sm'}`}>{value}</span>
     </div>
   );
 }
@@ -330,7 +359,6 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
   const [playerList, setPlayerList] = useState<Omit<Player, 'id'>[]>(initialData ? initialData.players : []);
   const [submitting, setSubmitting] = useState(false);
 
-  // Temp form fields
   const [newExpName, setNewExpName] = useState("");
   const [newExpAmount, setNewExpAmount] = useState(0);
   const [newPlayerName, setNewPlayerName] = useState("");
@@ -399,103 +427,165 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
 
   return (
     <div className="glass-card">
-      <form onSubmit={handleSubmit}>
-        <div className="grid">
-          <div>
-            <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Tanggal Sesi</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+      <form onSubmit={handleSubmit} className="space-y-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">Tanggal Sesi</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+              className="w-full bg-[#334155] border border-[#475569] rounded-lg p-3 text-white focus:ring-2 focus:ring-[#6366f1] focus:border-transparent outline-none transition-all"
+            />
           </div>
-          <div>
-            <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Saldo Awal Kas (Rp)</label>
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">Saldo Awal Kas (Rp)</label>
             <input
               type="text"
               value={formatCurrency(cash)}
               onChange={(e) => setCash(parseCurrency(e.target.value))}
               required
               placeholder="Contoh: 50.000"
+              className="w-full bg-[#334155] border border-[#475569] rounded-lg p-3 text-white focus:ring-2 focus:ring-[#6366f1] focus:border-transparent outline-none transition-all"
             />
           </div>
-          <div>
-            <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Sisa Kok (Biji)</label>
-            <input type="number" value={shuttlecocks} onChange={(e) => setShuttlecocks(Number(e.target.value))} />
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">Sisa Kok (Biji)</label>
+            <input
+              type="number"
+              value={shuttlecocks}
+              onChange={(e) => setShuttlecocks(Number(e.target.value))}
+              className="w-full bg-[#334155] border border-[#475569] rounded-lg p-3 text-white focus:ring-2 focus:ring-[#6366f1] focus:border-transparent outline-none transition-all"
+            />
           </div>
         </div>
 
-        <div className="grid" style={{ marginTop: '2rem' }}>
-          <div>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <ArrowDownCircle size={18} color="var(--danger)" /> Pengeluaran
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Expenses Column */}
+          <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+            <h4 className="flex items-center gap-2 text-lg font-bold mb-6 text-rose-400">
+              <ArrowDownCircle size={20} /> Pengeluaran
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <input type="text" placeholder="Nama barang (misal: Kok, Sewa Lapangan)" value={newExpName} onChange={(e) => setNewExpName(e.target.value)} />
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="space-y-4 mb-8">
+              <input
+                type="text"
+                placeholder="Nama barang (misal: Kok, Sewa Lapangan)"
+                value={newExpName}
+                onChange={(e) => setNewExpName(e.target.value)}
+                className="w-full bg-[#1e293b] border border-[#475569] rounded-lg p-3 text-white focus:ring-1 focus:ring-rose-400/50 outline-none transition-all"
+              />
+              <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Nominal Rp"
                   value={formatCurrency(newExpAmount)}
                   onChange={(e) => setNewExpAmount(parseCurrency(e.target.value))}
+                  className="flex-1 bg-[#1e293b] border border-[#475569] rounded-lg p-3 text-white focus:ring-1 focus:ring-rose-400/50 outline-none transition-all"
                 />
-                <button type="button" className="btn btn-primary" onClick={addExpense} style={{ padding: '0 1rem' }}><Plus size={20} /></button>
+                <button
+                  type="button"
+                  className="btn bg-[#6366f1] hover:bg-[#4f46e5] h-[50px] w-[50px] !p-0 justify-center rounded-xl transition-all"
+                  onClick={addExpense}
+                >
+                  <Plus size={24} />
+                </button>
               </div>
             </div>
-            <ul style={{ listStyle: 'none' }}>
+
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {expenseList.map((exp, i) => (
-                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+                <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group">
                   <div>
-                    <p style={{ fontWeight: 600, fontSize: '0.875rem' }}>{exp.name}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rp {exp.amount.toLocaleString()}</p>
+                    <p className="font-bold text-sm tracking-tight">{exp.name}</p>
+                    <p className="text-xs text-[#94a3b8]">Rp {exp.amount.toLocaleString()}</p>
                   </div>
-                  <button type="button" onClick={() => removeExpense(i)} style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
-                    <X size={16} />
+                  <button
+                    type="button"
+                    onClick={() => removeExpense(i)}
+                    className="p-2 text-rose-400 opacity-40 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 size={16} />
                   </button>
-                </li>
+                </div>
               ))}
-            </ul>
+              {expenseList.length === 0 && <p className="text-center py-4 text-[#94a3b8] text-xs italic">Belum ada pengeluaran ditambahkan</p>}
+            </div>
           </div>
 
-          <div>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <Users size={18} color="var(--accent)" /> Daftar Pemain
+          {/* Players Column */}
+          <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+            <h4 className="flex items-center gap-2 text-lg font-bold mb-6 text-[#10b981]">
+              <Users size={20} /> Daftar Pemain
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <input type="text" placeholder="Nama Pemain" value={newPlayerName} onChange={(e) => setNewPlayerName(e.target.value)} />
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="space-y-4 mb-8">
+              <input
+                type="text"
+                placeholder="Nama Pemain"
+                value={newPlayerName}
+                onChange={(e) => setNewPlayerName(e.target.value)}
+                className="w-full bg-[#1e293b] border border-[#475569] rounded-lg p-3 text-white focus:ring-1 focus:ring-[#10b981]/50 outline-none transition-all"
+              />
+              <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Iuran Rp"
                   value={formatCurrency(newPlayerAmount)}
                   onChange={(e) => setNewPlayerAmount(parseCurrency(e.target.value))}
+                  className="flex-1 bg-[#1e293b] border border-[#475569] rounded-lg p-3 text-white focus:ring-1 focus:ring-[#10b981]/50 outline-none transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setNewPlayerPaid(!newPlayerPaid)}
-                  className={`btn ${newPlayerPaid ? 'badge-paid' : 'badge-unpaid'}`}
-                  style={{ whiteSpace: 'nowrap', fontSize: '0.75rem' }}
+                  className={`btn h-[50px] min-w-[80px] text-xs font-bold rounded-xl transition-all ${newPlayerPaid ? 'badge-paid' : 'badge-unpaid'}`}
                 >
                   {newPlayerPaid ? 'Lunas' : 'Belum'}
                 </button>
-                <button type="button" className="btn btn-primary" onClick={addPlayer} style={{ padding: '0 1rem' }}><Plus size={20} /></button>
+                <button
+                  type="button"
+                  className="btn bg-[#6366f1] hover:bg-[#4f46e5] h-[50px] w-[50px] !p-0 justify-center rounded-xl transition-all"
+                  onClick={addPlayer}
+                >
+                  <Plus size={24} />
+                </button>
               </div>
             </div>
-            <ul style={{ listStyle: 'none' }}>
+
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {playerList.map((p, i) => (
-                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+                <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group">
                   <div>
-                    <p style={{ fontWeight: 600, fontSize: '0.875rem' }}>{p.name}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rp {p.contribution_amount.toLocaleString()} • {p.has_paid ? 'Lunas' : 'Belum Bayar'}</p>
+                    <p className="font-bold text-sm tracking-tight">{p.name}</p>
+                    <p className="text-xs text-[#94a3b8]">Rp {p.contribution_amount.toLocaleString()} • {p.has_paid ? 'Lunas' : 'Belum Bayar'}</p>
                   </div>
-                  <button type="button" onClick={() => removePlayer(i)} style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
-                    <X size={16} />
+                  <button
+                    type="button"
+                    onClick={() => removePlayer(i)}
+                    className="p-2 text-rose-400 opacity-40 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 size={16} />
                   </button>
-                </li>
+                </div>
               ))}
-            </ul>
+              {playerList.length === 0 && <p className="text-center py-4 text-[#94a3b8] text-xs italic">Belum ada pemain ditambahkan</p>}
+            </div>
           </div>
         </div>
 
-        <div style={{ marginTop: '3rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-          <button type="button" className="btn" style={{ background: '#334155' }} onClick={onCancel} disabled={submitting}>Batal</button>
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
+        <div className="flex gap-4 justify-end pt-8 border-t border-white/10">
+          <button
+            type="button"
+            className="px-8 py-3 rounded-lg font-bold text-white bg-white/5 hover:bg-white/10 transition-all outline-none"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary px-10 shadow-lg shadow-[#6366f1]/20"
+            disabled={submitting}
+          >
             {submitting ? 'Menyimpan...' : (initialData ? 'Update Laporan' : 'Simpan Laporan')}
           </button>
         </div>
