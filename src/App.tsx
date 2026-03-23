@@ -45,7 +45,7 @@ const parseCurrency = (val: string) => {
 };
 
 function App() {
-  const { isLoaded } = useUser();
+  useUser();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [fetching, setFetching] = useState(false);
   const [view, setView] = useState<"landing" | "home">("landing");
@@ -70,18 +70,6 @@ function App() {
     await fetchSessions();
     setView("home");
   };
-
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
-        <div className="glass-card text-center px-12 py-8">
-          <p className="animate-pulse" style={{ color: "#d4af37" }}>
-            Memuat aplikasi...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   if (view === "landing") {
     return <LandingPage onGoHome={handleGoToHome} fetching={fetching} />;
