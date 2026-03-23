@@ -1,8 +1,7 @@
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser, useAuth } from "@clerk/clerk-react";
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import axios from "axios";
 import { Plus, Calendar, Trash2, Wallet, Users, ArrowDownCircle, Pencil, LogIn } from "lucide-react";
-import Logo from "/SHUTTLECOCK.png"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -49,17 +48,15 @@ function App() {
   const { isLoaded } = useUser();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [fetching, setFetching] = useState(false);
-
-  useEffect(() => {
-    fetchSessions();
-  }, []);
+  const [view, setView] = useState<"landing" | "home">("landing");
 
   const fetchSessions = async () => {
     setFetching(true);
     try {
       const res = await axios.get(`${API_URL}/sessions`);
-      const sortedSessions = res.data.sort((a: Session, b: Session) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
+      const sortedSessions = res.data.sort(
+        (a: Session, b: Session) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime()
       );
       setSessions(sortedSessions);
     } catch (err) {
@@ -69,31 +66,32 @@ function App() {
     }
   };
 
+  const handleGoToHome = async () => {
+    await fetchSessions();
+    setView("home");
+  };
+
   if (!isLoaded) {
     return (
-      <div className="container mx-auto max-w-6xl px-4 mt-20 text-center">
-        <div className="glass-card">
-          <p className="animate-pulse">Memuat aplikasi...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
+        <div className="glass-card text-center px-12 py-8">
+          <p className="animate-pulse" style={{ color: "#d4af37" }}>
+            Memuat aplikasi...
+          </p>
         </div>
       </div>
     );
   }
 
-  if (fetching && sessions.length === 0) {
-    return (
-      <div className="container mx-auto max-w-6xl px-4 mt-20 text-center">
-        <div className="glass-card">
-          <p className="animate-pulse">Memuat data laporan...</p>
-        </div>
-      </div>
-    );
+  if (view === "landing") {
+    return <LandingPage onGoHome={handleGoToHome} fetching={fetching} />;
   }
 
   return (
     <div className="container mx-auto max-w-full pb-8">
       <header className="flex flex-col md:flex-row justify-between items-center mb-12 px-10 py-4 gap-6 bg-white/5 backdrop-blur-md w-full">
         <div className="flex items-center justify-center gap-4">
-          <img src={Logo} alt="Logo" className="w-20 h-20 -m-8" />
+          <img src="/SHUTTLECOCK.png" alt="Logo" className="w-20 h-20 -m-8" />
           <div className="flex flex-col items-center justify-center md:items-start md:justify-between">
             <div className="flex justify-center items-center gap-2">
               <h1 className="text-2xl font-bold text-[#cebc17aa]">PB JP GOLD</h1>
@@ -103,9 +101,17 @@ function App() {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <button
+            className="px-4 py-2 rounded-lg text-sm text-[#94a3b8] hover:text-white transition-colors"
+            onClick={() => setView("landing")}
+          >
+            ← Beranda
+          </button>
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="btn btn-primary"><LogIn /> Login</button>
+              <button className="btn btn-primary">
+                <LogIn /> Login
+              </button>
             </SignInButton>
           </SignedOut>
           <SignedIn>
@@ -116,7 +122,9 @@ function App() {
 
       <div className="mx-auto max-w-6xl">
         <SignedOut>
-          <p className="text-center text-[#94a3b8] mb-10 bg-yellow-300/10">Silahkan Login Untuk Mengedit</p>
+          <p className="text-center text-[#94a3b8] mb-10 bg-yellow-300/10">
+            Silahkan Login Untuk Mengedit
+          </p>
         </SignedOut>
         <Dashboard sessions={sessions} onRefresh={fetchSessions} />
       </div>
@@ -124,29 +132,157 @@ function App() {
   );
 }
 
-function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: () => void }) {
+function LandingPage({
+  onGoHome,
+  fetching,
+}: {
+  onGoHome: () => void;
+  fetching: boolean;
+}) {
+  return (
+    <div className="landing-page">
+      {/* Ambient glow orbs */}
+      <div className="orb orb-1" />
+      <div className="orb orb-2" />
+      <div className="orb orb-3" />
+
+      {/* Floating particles */}
+      <div className="particles">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{ "--i": i } as React.CSSProperties}
+          />
+        ))}
+      </div>
+
+      {/* Main card */}
+      <div className="landing-card">
+        {/* Logo */}
+        <div className="landing-logo-wrap">
+          <div className="landing-logo-ring">
+            <img
+              src="/SHUTTLECOCK.png"
+              alt="JP GOLD Logo"
+              className="landing-logo"
+            />
+          </div>
+          <span className="gold-badge">⭐ Sistem Pelaporan Resmi</span>
+        </div>
+
+        {/* Title */}
+        <h1 className="landing-title">
+          PB JP <span className="gold-text">GOLD</span>
+        </h1>
+        <p className="landing-subtitle">Badminton Tracker</p>
+
+        <p className="landing-desc">
+          Platform pelaporan sesi bulutangkis mingguan yang elegan. Pantau
+          keuangan, kehadiran, dan perkembangan komunitas Anda.
+        </p>
+
+        {/* Divider */}
+        <div className="gold-divider" />
+
+        {/* Feature pills */}
+        <div className="stats-row">
+          <div className="stat-pill">
+            <span>🏸</span>
+            <span>Laporan Sesi</span>
+          </div>
+          <div className="stat-pill">
+            <span>💰</span>
+            <span>Keuangan Kas</span>
+          </div>
+          <div className="stat-pill">
+            <span>👥</span>
+            <span>Data Pemain</span>
+          </div>
+        </div>
+
+        {/* CTA buttons */}
+        <div className="landing-cta">
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="landing-btn-login">
+                <LogIn size={20} />
+                Login
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <div className="landing-signed-in">
+              <UserButton afterSignOutUrl="/" />
+              <span className="text-sm" style={{ color: "#d4af37" }}>
+                Sudah Login
+              </span>
+            </div>
+          </SignedIn>
+
+          <button
+            className="landing-btn-history"
+            onClick={onGoHome}
+            disabled={fetching}
+          >
+            {fetching ? (
+              <>
+                <span className="spinner" />
+                Memuat...
+              </>
+            ) : (
+              <>
+                <Calendar size={20} />
+                Riwayat Sesi
+              </>
+            )}
+          </button>
+        </div>
+
+        <p className="landing-footer">
+          PB JP GOLD &copy; 2025 &middot; Pelaporan Bulutangkis Mingguan
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Dashboard({
+  sessions,
+  onRefresh,
+}: {
+  sessions: Session[];
+  onRefresh: () => void;
+}) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const { getToken } = useAuth();
   const { user } = useUser();
 
   const latestSession = sessions[0];
-  const latestBalance = latestSession ? (
-    latestSession.initial_cash -
-    latestSession.expenses.reduce((a, c) => a + c.amount, 0) +
-    latestSession.players.reduce((a, c) => a + (c.has_paid ? c.contribution_amount : 0), 0)
-  ) : 0;
-
-  const averagePlayers = sessions.length > 0
-    ? (sessions.reduce((acc, s) => acc + s.players.length, 0) / sessions.length).toFixed(1)
+  const latestBalance = latestSession
+    ? latestSession.initial_cash -
+      latestSession.expenses.reduce((a, c) => a + c.amount, 0) +
+      latestSession.players.reduce(
+        (a, c) => a + (c.has_paid ? c.contribution_amount : 0),
+        0
+      )
     : 0;
+
+  const averagePlayers =
+    sessions.length > 0
+      ? (
+          sessions.reduce((acc, s) => acc + s.players.length, 0) /
+          sessions.length
+        ).toFixed(1)
+      : 0;
 
   const handleDelete = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus laporan ini?")) return;
     try {
       const token = await getToken();
       await axios.delete(`${API_URL}/sessions/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       onRefresh();
     } catch (err) {
@@ -175,7 +311,9 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
             </div>
             <div>
               <p className="text-sm text-[#94a3b8]">Saldo Terkini</p>
-              <p className="text-2xl font-bold">Rp {latestBalance.toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                Rp {latestBalance.toLocaleString()}
+              </p>
             </div>
           </div>
           <div className="glass-card flex items-center gap-4 hover:scale-105 transition-transform duration-300">
@@ -184,7 +322,9 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
             </div>
             <div>
               <p className="text-sm text-[#94a3b8]">Rata-rata Kehadiran</p>
-              <p className="text-2xl font-bold">{averagePlayers} Pemain/Sesi</p>
+              <p className="text-2xl font-bold">
+                {averagePlayers} Pemain/Sesi
+              </p>
             </div>
           </div>
           <div className="glass-card flex items-center gap-4 hover:scale-105 transition-transform duration-300">
@@ -200,9 +340,18 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
       )}
 
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold">{isAdding ? (editingSession ? 'Edit Laporan' : 'Buat Laporan Baru') : 'Riwayat Sesi'}</h2>
+        <h2 className="text-2xl font-bold">
+          {isAdding
+            ? editingSession
+              ? "Edit Laporan"
+              : "Buat Laporan Baru"
+            : "Riwayat Sesi"}
+        </h2>
         {!isAdding && user && (
-          <button className="btn btn-primary" onClick={() => setIsAdding(true)}>
+          <button
+            className="btn btn-primary"
+            onClick={() => setIsAdding(true)}
+          >
             <Plus size={20} /> Laporan Baru
           </button>
         )}
@@ -212,7 +361,10 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
         <NewSessionForm
           initialData={editingSession || undefined}
           onCancel={handleCancelForm}
-          onSaved={() => { handleCancelForm(); onRefresh(); }}
+          onSaved={() => {
+            handleCancelForm();
+            onRefresh();
+          }}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -226,7 +378,12 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
           ))}
           {sessions.length === 0 && (
             <div className="glass-card col-span-full text-center py-20">
-              <p className="text-lg text-[#94a3b8]">Belum ada laporan. {user ? 'Buat laporan pertama Anda!' : 'Silakan login untuk membuat laporan.'}</p>
+              <p className="text-lg text-[#94a3b8]">
+                Belum ada laporan.{" "}
+                {user
+                  ? "Buat laporan pertama Anda!"
+                  : "Silakan login untuk membuat laporan."}
+              </p>
             </div>
           )}
         </div>
@@ -235,19 +392,33 @@ function Dashboard({ sessions, onRefresh }: { sessions: Session[], onRefresh: ()
   );
 }
 
-function SessionCard({ session, onDelete, onEdit }: { session: Session, onDelete: () => void, onEdit: () => void }) {
+function SessionCard({
+  session,
+  onDelete,
+  onEdit,
+}: {
+  session: Session;
+  onDelete: () => void;
+  onEdit: () => void;
+}) {
   const { user } = useUser();
-  const expensesTotal = session.expenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const incomeTotal = session.players.reduce((acc, curr) => acc + (curr.has_paid ? curr.contribution_amount : 0), 0);
+  const expensesTotal = session.expenses.reduce(
+    (acc, curr) => acc + curr.amount,
+    0
+  );
+  const incomeTotal = session.players.reduce(
+    (acc, curr) => acc + (curr.has_paid ? curr.contribution_amount : 0),
+    0
+  );
   const sisa = session.initial_cash - expensesTotal;
   const kasAkhir = sisa + incomeTotal;
   const isOwner = user?.id === session.user_id;
 
-  const formattedDate = new Date(session.date).toLocaleDateString('id-ID', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  const formattedDate = new Date(session.date).toLocaleDateString("id-ID", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
@@ -286,15 +457,24 @@ function SessionCard({ session, onDelete, onEdit }: { session: Session, onDelete
       )}
 
       <div className="space-y-3">
-        <StatRow label="Uang Kas Awal" value={`Rp ${session.initial_cash.toLocaleString()}`} />
+        <StatRow
+          label="Uang Kas Awal"
+          value={`Rp ${session.initial_cash.toLocaleString()}`}
+        />
 
-        {/* Expenditure Section with Details */}
         <div className="space-y-2">
-          <StatRow label="Total Pengeluaran" value={`Rp ${expensesTotal.toLocaleString()}`} color="text-rose-400" />
+          <StatRow
+            label="Total Pengeluaran"
+            value={`Rp ${expensesTotal.toLocaleString()}`}
+            color="text-rose-400"
+          />
           {session.expenses.length > 0 && (
             <div className="pl-4 border-l border-rose-500/20 space-y-1">
               {session.expenses.map((exp, idx) => (
-                <div key={idx} className="flex justify-between text-[11px] text-[#94a3b8]">
+                <div
+                  key={idx}
+                  className="flex justify-between text-[11px] text-[#94a3b8]"
+                >
                   <span>• {exp.name}</span>
                   <span>Rp {exp.amount.toLocaleString()}</span>
                 </div>
@@ -304,11 +484,20 @@ function SessionCard({ session, onDelete, onEdit }: { session: Session, onDelete
         </div>
 
         <StatRow label="Sisa Kas" value={`Rp ${sisa.toLocaleString()}`} />
-        <StatRow label="Total Iuran" value={`Rp ${incomeTotal.toLocaleString()}`} color="text-[#10b981]" />
+        <StatRow
+          label="Total Iuran"
+          value={`Rp ${incomeTotal.toLocaleString()}`}
+          color="text-[#10b981]"
+        />
 
         <div className="h-px bg-white/10 my-2" />
 
-        <StatRow label="Saldo Akhir" value={`Rp ${kasAkhir.toLocaleString()}`} weight="font-bold" size="text-xl" />
+        <StatRow
+          label="Saldo Akhir"
+          value={`Rp ${kasAkhir.toLocaleString()}`}
+          weight="font-bold"
+          size="text-xl"
+        />
       </div>
 
       <div className="mt-8">
@@ -317,12 +506,18 @@ function SessionCard({ session, onDelete, onEdit }: { session: Session, onDelete
             <Users size={16} /> Pemain ({session.players.length})
           </p>
           {session.shuttlecocks_remaining !== null && (
-            <span className="text-[10px] text-[#94a3b8] font-medium italic">Sisa Kok: {session.shuttlecocks_remaining}</span>
+            <span className="text-[10px] text-[#94a3b8] font-medium italic">
+              Sisa Kok: {session.shuttlecocks_remaining}
+            </span>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
           {session.players.map((p) => (
-            <span key={p.id} className={`badge ${p.has_paid ? 'badge-paid' : 'badge-unpaid'}`} title={p.has_paid ? 'Sudah Bayar' : 'Belum Bayar'}>
+            <span
+              key={p.id}
+              className={`badge ${p.has_paid ? "badge-paid" : "badge-unpaid"}`}
+              title={p.has_paid ? "Sudah Bayar" : "Belum Bayar"}
+            >
               {p.name}
             </span>
           ))}
@@ -344,19 +539,43 @@ function StatRow({ label, value, color, weight, size }: StatRowProps) {
   return (
     <div className="flex justify-between items-center">
       <span className="text-xs text-[#94a3b8]">{label}</span>
-      <span className={`${color || 'text-white'} ${weight || 'font-semibold'} ${size || 'text-sm'}`}>{value}</span>
+      <span
+        className={`${color || "text-white"} ${weight || "font-semibold"} ${
+          size || "text-sm"
+        }`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
 
-function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Session, onCancel: () => void, onSaved: () => void }) {
+function NewSessionForm({
+  initialData,
+  onCancel,
+  onSaved,
+}: {
+  initialData?: Session;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
   const { getToken } = useAuth();
   const { user } = useUser();
-  const [date, setDate] = useState(initialData ? initialData.date.split('T')[0] : new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(
+    initialData
+      ? initialData.date.split("T")[0]
+      : new Date().toISOString().split("T")[0]
+  );
   const [cash, setCash] = useState(initialData ? initialData.initial_cash : 0);
-  const [shuttlecocks, setShuttlecocks] = useState(initialData ? initialData.shuttlecocks_remaining : 8);
-  const [expenseList, setExpenseList] = useState<Omit<Expense, 'id'>[]>(initialData ? initialData.expenses : []);
-  const [playerList, setPlayerList] = useState<Omit<Player, 'id'>[]>(initialData ? initialData.players : []);
+  const [shuttlecocks, setShuttlecocks] = useState(
+    initialData ? initialData.shuttlecocks_remaining : 8
+  );
+  const [expenseList, setExpenseList] = useState<Omit<Expense, "id">[]>(
+    initialData ? initialData.expenses : []
+  );
+  const [playerList, setPlayerList] = useState<Omit<Player, "id">[]>(
+    initialData ? initialData.players : []
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const [newExpName, setNewExpName] = useState("");
@@ -367,7 +586,10 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
 
   const addExpense = () => {
     if (newExpName && newExpAmount > 0) {
-      setExpenseList([...expenseList, { name: newExpName, amount: newExpAmount }]);
+      setExpenseList([
+        ...expenseList,
+        { name: newExpName, amount: newExpAmount },
+      ]);
       setNewExpName("");
       setNewExpAmount(0);
     }
@@ -379,11 +601,14 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
 
   const addPlayer = () => {
     if (newPlayerName) {
-      setPlayerList([...playerList, {
-        name: newPlayerName,
-        contribution_amount: newPlayerAmount,
-        has_paid: newPlayerPaid
-      }]);
+      setPlayerList([
+        ...playerList,
+        {
+          name: newPlayerName,
+          contribution_amount: newPlayerAmount,
+          has_paid: newPlayerPaid,
+        },
+      ]);
       setNewPlayerName("");
     }
   };
@@ -404,22 +629,22 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
         expenses: expenseList,
         players: playerList,
         user_name: user?.fullName || user?.username || user?.firstName,
-        user_email: user?.primaryEmailAddress?.emailAddress
+        user_email: user?.primaryEmailAddress?.emailAddress,
       };
 
       if (initialData) {
         await axios.put(`${API_URL}/sessions/${initialData.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       } else {
         await axios.post(`${API_URL}/sessions`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
       onSaved();
     } catch (err) {
       console.error("Gagal menyimpan:", err);
-      alert(`Gagal ${initialData ? 'memperbarui' : 'menyimpan'} laporan`);
+      alert(`Gagal ${initialData ? "memperbarui" : "menyimpan"} laporan`);
     } finally {
       setSubmitting(false);
     }
@@ -430,7 +655,9 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
       <form onSubmit={handleSubmit} className="space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">Tanggal Sesi</label>
+            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">
+              Tanggal Sesi
+            </label>
             <input
               type="date"
               value={date}
@@ -440,7 +667,9 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">Saldo Awal Kas (Rp)</label>
+            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">
+              Saldo Awal Kas (Rp)
+            </label>
             <input
               type="text"
               value={formatCurrency(cash)}
@@ -451,7 +680,9 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">Sisa Kok (Biji)</label>
+            <label className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">
+              Sisa Kok (Biji)
+            </label>
             <input
               type="number"
               value={shuttlecocks}
@@ -480,7 +711,9 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
                   type="text"
                   placeholder="Nominal Rp"
                   value={formatCurrency(newExpAmount)}
-                  onChange={(e) => setNewExpAmount(parseCurrency(e.target.value))}
+                  onChange={(e) =>
+                    setNewExpAmount(parseCurrency(e.target.value))
+                  }
                   className="flex-1 bg-[#1e293b] border border-[#475569] rounded-lg p-3 text-white focus:ring-1 focus:ring-rose-400/50 outline-none transition-all"
                 />
                 <button
@@ -495,10 +728,17 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
 
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {expenseList.map((exp, i) => (
-                <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group">
+                <div
+                  key={i}
+                  className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group"
+                >
                   <div>
-                    <p className="font-bold text-sm tracking-tight">{exp.name}</p>
-                    <p className="text-xs text-[#94a3b8]">Rp {exp.amount.toLocaleString()}</p>
+                    <p className="font-bold text-sm tracking-tight">
+                      {exp.name}
+                    </p>
+                    <p className="text-xs text-[#94a3b8]">
+                      Rp {exp.amount.toLocaleString()}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -509,7 +749,11 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
                   </button>
                 </div>
               ))}
-              {expenseList.length === 0 && <p className="text-center py-4 text-[#94a3b8] text-xs italic">Belum ada pengeluaran ditambahkan</p>}
+              {expenseList.length === 0 && (
+                <p className="text-center py-4 text-[#94a3b8] text-xs italic">
+                  Belum ada pengeluaran ditambahkan
+                </p>
+              )}
             </div>
           </div>
 
@@ -531,15 +775,19 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
                   type="text"
                   placeholder="Iuran Rp"
                   value={formatCurrency(newPlayerAmount)}
-                  onChange={(e) => setNewPlayerAmount(parseCurrency(e.target.value))}
+                  onChange={(e) =>
+                    setNewPlayerAmount(parseCurrency(e.target.value))
+                  }
                   className="flex-1 bg-[#1e293b] border border-[#475569] rounded-lg p-3 text-white focus:ring-1 focus:ring-[#10b981]/50 outline-none transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setNewPlayerPaid(!newPlayerPaid)}
-                  className={`btn h-[50px] min-w-[80px] text-xs font-bold rounded-xl transition-all ${newPlayerPaid ? 'badge-paid' : 'badge-unpaid'}`}
+                  className={`btn h-[50px] min-w-[80px] text-xs font-bold rounded-xl transition-all ${
+                    newPlayerPaid ? "badge-paid" : "badge-unpaid"
+                  }`}
                 >
-                  {newPlayerPaid ? 'Lunas' : 'Belum'}
+                  {newPlayerPaid ? "Lunas" : "Belum"}
                 </button>
                 <button
                   type="button"
@@ -553,10 +801,16 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
 
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {playerList.map((p, i) => (
-                <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group">
+                <div
+                  key={i}
+                  className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group"
+                >
                   <div>
                     <p className="font-bold text-sm tracking-tight">{p.name}</p>
-                    <p className="text-xs text-[#94a3b8]">Rp {p.contribution_amount.toLocaleString()} • {p.has_paid ? 'Lunas' : 'Belum Bayar'}</p>
+                    <p className="text-xs text-[#94a3b8]">
+                      Rp {p.contribution_amount.toLocaleString()} &bull;{" "}
+                      {p.has_paid ? "Lunas" : "Belum Bayar"}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -567,7 +821,11 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
                   </button>
                 </div>
               ))}
-              {playerList.length === 0 && <p className="text-center py-4 text-[#94a3b8] text-xs italic">Belum ada pemain ditambahkan</p>}
+              {playerList.length === 0 && (
+                <p className="text-center py-4 text-[#94a3b8] text-xs italic">
+                  Belum ada pemain ditambahkan
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -586,7 +844,11 @@ function NewSessionForm({ initialData, onCancel, onSaved }: { initialData?: Sess
             className="btn btn-primary px-10 shadow-lg shadow-[#6366f1]/20"
             disabled={submitting}
           >
-            {submitting ? 'Menyimpan...' : (initialData ? 'Update Laporan' : 'Simpan Laporan')}
+            {submitting
+              ? "Menyimpan..."
+              : initialData
+              ? "Update Laporan"
+              : "Simpan Laporan"}
           </button>
         </div>
       </form>
