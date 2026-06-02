@@ -58,13 +58,25 @@ const parseKokList = (brandsStr?: string, initial?: number, remaining?: number) 
 };
 
 export default function App() {
-  useUser();
-  const { getToken } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { getToken, signOut } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [view, setView] = useState<"dashboard" | "sessions" | "detail" | "form">("dashboard");
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const allowedEmails = ["buahjamblang30@gmail.com", "rezadork91@gmail.com"];
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      const email = user.primaryEmailAddress?.emailAddress;
+      if (email && !allowedEmails.includes(email)) {
+        alert("Akses Ditolak: Hanya admin yang diizinkan untuk login.");
+        signOut();
+      }
+    }
+  }, [isLoaded, isSignedIn, user, signOut]);
 
   const navigateTo = (newView: "dashboard" | "sessions" | "detail" | "form") => {
     setView(newView);
